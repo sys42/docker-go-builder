@@ -1,6 +1,8 @@
 #!/bin/bash
 set -euo pipefail
 
+TRACE=${TRACE:-""}
+
 err_exit() {
   echo "[ERROR] $1" >&2
   exit $2
@@ -18,12 +20,6 @@ DIR_WORK=$(pwd)
 DIR_VENDOR="$DIR_WORK"/third-party
 DIR_BIN="$DIR_WORK"/bin
 
-#echo "FILE_MAIN  = $FILE_MAIN" 
-#echo "FILE_BIN   = $FILE_BIN" 
-#echo "DIR_WORK   = $DIR_WORK"
-#echo "DIR_VENDOR = $DIR_VENDOR"
-#echo "DIR_BIN    = $DIR_BIN"
-
 HELPERPATH=/go/src/x/y/
 mkdir -p "$HELPERPATH"
 HELPERPATH="$HELPERPATH"/"$FILE_BIN"
@@ -32,5 +28,7 @@ cd "$HELPERPATH"
 
 export GOPATH="$DIR_VENDOR":/go
 export GOBIN="$DIR_BIN"
+
+[ -n "$TRACE" ] && env
 
 go "$@"
