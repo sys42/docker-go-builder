@@ -1,0 +1,36 @@
+#!/bin/bash
+set -euo pipefail
+
+err_exit() {
+  echo "[ERROR] $1" >&2
+  exit $2
+}
+
+## grep 'package\s*main'
+
+FILE_MAIN=$(grep -l -s 'package\s*main' *.go)
+
+[ -z "$FILE_MAIN" ] && err_exit "file with 'package main' not found" 2
+[ $(echo "$FILE_MAIN" | wc -l) -gt 1 ] && err_exit "more than one file with 'package main' found" 3
+
+FILE_BIN=${FILE_MAIN/.go/}
+DIR_WORK=$(pwd)
+DIR_VENDOR="$DIR_WORK"/third-party
+DIR_BIN="$DIR_WORK"/bin
+
+#echo "FILE_MAIN  = $FILE_MAIN" 
+#echo "FILE_BIN   = $FILE_BIN" 
+#echo "DIR_WORK   = $DIR_WORK"
+#echo "DIR_VENDOR = $DIR_VENDOR"
+#echo "DIR_BIN    = $DIR_BIN"
+
+HELPERPATH=/go/src/x/y/
+mkdir -p "$HELPERPATH"
+HELPERPATH="$HELPERPATH"/"$FILE_BIN"
+ln -s "$DIR_WORK" "$HELPERPATH"
+cd "$HELPERPATH"
+
+export GOPATH="$DIR_VENDOR":/go
+export GOBIN="$DIR_BIN"
+
+go "$@"
