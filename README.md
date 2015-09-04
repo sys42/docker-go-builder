@@ -42,7 +42,6 @@ ldd testapp
 
 What's really strange is: the statically linked binaries are much smaller than their dynamically linked counterparts. Can someone explain this? Shouldn't it be the other way around?
 
-
 #### Cross Compiling
 
 Since Go 1.5 cross compiling is really simple. Just set to environment variables. Here is an example of cross compiling using this image:
@@ -53,4 +52,12 @@ GOOS=windows GOARCH=386 ./go.sh build
 ```
 
 For valid GOOS and GOARCH combinations, see: [http://golang.org/doc/install/source#environment](http://golang.org/doc/install/source#environment)
+
+### Restriction
+
+Actually this image cannot compile packages without a 'func main' in one of the files, because it resolves the package name for naming output files and the symlinking magic from this file. To workaround this problem just embed the string 'func main' in a comment somewhere in your package file.
+
+Well, not really nice, but it will work.
+
+Maybe I should implement an optional environment variable for this case?
 
