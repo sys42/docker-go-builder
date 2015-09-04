@@ -1,6 +1,0 @@
-start.sh
-build.sh
-bin/*
-third-party/*
-.git/*
-
