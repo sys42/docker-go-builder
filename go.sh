@@ -1,5 +1,7 @@
 #!/bin/sh
 
+IMAGE_TO_USE="sys42/docker-go-builder:latest"
+
 TMPENV=""
 [ -n "$GOOS" ]        && TMPENV="-e GOOS=$GOOS"
 [ -n "$GOARCH" ]      && TMPENV="$TMPENV -e GOARCH=$GOARCH"
@@ -8,5 +10,6 @@ TMPENV=""
 
 [ -n "$TRACE" ] && echo "TMPENV = [$TMPENV]"
 
-docker run -ti --rm -v $PWD:/app -w /app $TMPENV $(cat REPO_AND_VERSION) \
+
+docker run -ti --rm -v $PWD:/app -w /app $TMPENV "$IMAGE_TO_USE" \
        remapuser app $(id -u) $(id -g) goexec "$@"
