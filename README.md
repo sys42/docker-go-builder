@@ -12,7 +12,7 @@ Enough ranting. The image takes care of manipulating GOPATH and GOBIN.
 
 ### Usage of the Image
 
-Script `go.sh` should take away most of the burden of specifying commandline arguments for the container. Just use `go.sh` like you would use `go` with a locally installed golang package. All parameters are handed over to the go binary within the container. 
+Script `go-builder` should take away most of the burden of specifying commandline arguments for the container. Just use `go-builder` like you would use `go` with a locally installed golang package. All parameters are handed over to the go binary within the container. 
 
 Have a look at its source if you want to know the details or want to customize it further.
 
@@ -28,10 +28,10 @@ ENTRYPOINT ["/my_program"]
 
 If a binary is not statically linked, it wouldn't run in such a container, because it still requires some dynamically linked libraries like libc.
 
-To generate a statically linked program use `go.sh` like this
+To generate a statically linked program use `go-builder` like this
 
 ```
-CGO_ENABLED=0 ./go.sh build -a --ldflags='-s'
+CGO_ENABLED=0 ./go-builder build -a  -installsuffix cgo -ldflags='-s'
 ```
 
 To verify that is really statically linked (in this case binary `testapp`), run:
@@ -48,7 +48,7 @@ Since Go 1.5 cross compiling is really simple. Just set to environment variables
 
 ```
 ## produces testapp.exe
-GOOS=windows GOARCH=386 ./go.sh build
+GOOS=windows GOARCH=386 ./go-builder build
 ```
 
 For valid GOOS and GOARCH combinations, see: [http://golang.org/doc/install/source#environment](http://golang.org/doc/install/source#environment)
