@@ -12,9 +12,34 @@ Enough ranting. The image takes care of manipulating GOPATH and GOBIN.
 
 ### Usage of the Image
 
-Script `go-builder` should take away most of the burden of specifying commandline arguments for the container. Just use `go-builder` like you would use `go` with a locally installed golang package. All parameters are handed over to the go binary within the container. 
+Script `go-builder` should take away most of the burden of specifying commandline arguments for the container. Just use `./go-builder` as a prefix to commands like `go build`.
 
-Have a look at its source if you want to know the details or want to customize it further.
+Examples:
+
+```
+./go-builder go get
+./go-builder go build
+./go-builder go fmt
+```
+
+Command `go` isn't inserted automatically, because this way you can call other commands, too.
+
+```
+# a stupid one
+./go-builder ls -l
+# more useful
+./go-builder make
+# much more useful
+./go-builder godep save
+```
+
+Handling of variables is yet a little bit cumbersome. Quoting or escaping doesn't seem to work. Until I'll find a solution you have to use subshells or `eval`:
+
+```
+## very hack-ish ...
+./go-builder sh -c 'echo "user=$UID"'
+./go-builder eval 'echo "user=$UID"'
+```
 
 #### Building statically linked binaries
 
@@ -31,7 +56,7 @@ If a binary is not statically linked, it wouldn't run in such a container, becau
 To generate a statically linked program use `go-builder` like this
 
 ```
-CGO_ENABLED=0 ./go-builder build -a  -installsuffix cgo -ldflags='-s'
+CGO_ENABLED=0 ./go-builder go build -a  -installsuffix cgo -ldflags='-s'
 ```
 
 To verify that is really statically linked (in this case binary `testapp`), run:
@@ -48,7 +73,7 @@ Since Go 1.5 cross compiling is really simple. Just set to environment variables
 
 ```
 ## produces testapp.exe
-GOOS=windows GOARCH=386 ./go-builder build
+GOOS=windows GOARCH=386 ./go-builder go build
 ```
 
 For valid GOOS and GOARCH combinations, see: [http://golang.org/doc/install/source#environment](http://golang.org/doc/install/source#environment)
