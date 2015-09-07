@@ -1,0 +1,99 @@
+#!/bin/bash
+
+usage() {
+	base="$(basename "$0")"
+	cat <<EOUSAGE
+
+usage: $base command-and-args
+
+To setup GOPATH correctly this script needs to know the fully-qualified package
+name of the package to compile. You can either set it in file .godir or you can
+use an import annotation in your main file like this:
+
+package main // import "github.com/MyAccount/hello"
+
+Compiled binaries will be stored in directory 'bin' of your source directory. To
+use another directory please specify environment variable GOBIN.
+
+Crosscompiled packages will be installed to directory 'pkg' in your source
+directory. To use another directory please specify environment variable GOPKG.
+
+Vendored imports will be stored in directory 'vendor' in your source directory.
+To use another directory please specify environment variable GOVENDOR.
+
+EOUSAGE
+}
+
+# no params?
+if [ $# -eq 0 ]; then
+	usage >&2
+	exit 100
+fi
+
+# /src empty?
+if ( find /src -maxdepth 0 -empty | read v ); then
+  echo >&2 "[ERROR] must mount Go source code into /src directory"
+  exit 101
+fi
+
+# try to resolve canonical package name
+cd /src
+pkgName="$(go list -e -f '{{.ImportComment}}' 2>/dev/null || true)"
+if [ -z "$pkgName" -a -s .godir ]; then
+	pkgName="$(cat .godir)"
+fi
+if [ -z "$pkgName" ]; then
+	echo >&2 "[ERROR] cannot find canonical import path"
+	usage >&2
+	exit 102
+fi
+
+# grab just first path listed in GOPATH
+goPath="${GOPATH%%:*}"
+
+# construct Go package path
+pkgPath="$goPath/src/$pkgName"
+
+# set-up src directory tree in GOPATH
+mkdir -p "$(dirname "$pkgPath")"
+
+# link source dir into GOPATH
+ln -sf /src "$pkgPath"
+
+# check and set up GOBIN
+#if [ -z "$GOBIN" ]; then
+#	[ ! -d "/src/bin" ] && mkdir /src/bin
+#	export GOBIN=/src/bin
+#fi
+#if [ ! -d "$GOBIN" ]; then
+#	echo >&2 "[ERROR] cannot find GOBIN directory [$GOBIN]"
+#	usage >&2
+#	exit 103
+#fi
+
+# check and set up GOVENDOR
+if [ -z "$GOVENDOR" ]; then
+	[ ! -d "/src/vendor" ] && mkdir /src/vendor
+	export GOVENDOR=/src/vendor
+fi
+
+if [ ! -d "$GOVENDOR" ]; then
+	echo >&2 "[ERROR] cannot find GOVENDOR directory [$GOVENDOR]"
+	usage >&2
+	exit 105
+fi
+export GOPATH="$GOVENDOR:$GOPATH"
+
+
+# handle Godeps workspace
+#if [ -e "$pkgPath/Godeps/_workspace" ]; then
+#	# add local godeps dir to GOPATH
+#	GOPATH=$pkgPath/Godeps/_workspace:$GOPATH
+#fi
+
+cd $pkgPath
+
+[ -n "$DEBUG" ] && env
+
+"$@"
+
