@@ -8,7 +8,7 @@ I still don't get it why the required directory structure for building a Go prog
 
 But what do I know. Selfcontained and easy-to-build repositories are obviously not the intended target.
 
-Enough ranting. The image takes care of manipulating GOPATH and GOBIN.
+Enough ranting. The image takes care of manipulating the required environment settings.
 
 ### Usage of the Image
 
@@ -22,7 +22,7 @@ Examples:
 ./go-builder go fmt
 ```
 
-Command `go` isn't inserted automatically, because this way you can call other commands, too.
+Command `go` isn't inserted by the script automatically, because this way you can call other commands, too.
 
 ```
 # a stupid one
@@ -32,6 +32,19 @@ Command `go` isn't inserted automatically, because this way you can call other c
 # much more useful
 ./go-builder godep save
 ```
+
+Unless specified via environment variables otherwise, `go-builder' will use subdirectory __vendor__ to store vendored packages. If this subdirectory don't exist, it will be generated.
+
+You can override the used directory by specifying environment variable GOVENDOR. If you do so, please make sure, that the environment variable point to subdirectory of `/src` (the project directory within the container).
+
+
+To setup GOPATH correctly the image needs to know the fully-qualified package name of the package to compile. You can either set it in file .godir or you can use an import annotation in your main file like this:
+
+```
+package main // import "github.com/MyAccount/hello"
+```
+
+To handle dependencies, __godep__ and __glock__ are preinstalled.
 
 Handling of variables is yet a little bit cumbersome. Quoting or escaping doesn't seem to work. Until I'll find a solution you have to use subshells or `eval`:
 
@@ -78,11 +91,4 @@ GOOS=windows GOARCH=386 ./go-builder go build
 
 For valid GOOS and GOARCH combinations, see: [http://golang.org/doc/install/source#environment](http://golang.org/doc/install/source#environment)
 
-### Restriction
-
-Actually this image cannot compile packages without a 'func main' in one of the files, because it resolves the package name for naming output files and the symlinking magic from this file. To workaround this problem just embed the string 'func main' in a comment somewhere in your package file.
-
-Well, not really nice, but it will work.
-
-Maybe I should implement an optional environment variable for this case?
 
